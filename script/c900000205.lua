@@ -23,25 +23,20 @@ function s.initial_effect(c)
 	e3:SetCondition(s.insectcon)
 	e3:SetValue(1)
 	c:RegisterEffect(e3)
-	--Track that the equipped monster left the field this turn
+	--Sent to the GY because the equipped monster left the field: during the
+	--End Phase, add 1 "Dragonflymech" monster from your Deck or GY, then
+	--optionally mill 1
 	local e4=Effect.CreateEffect(c)
-	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_CONTINUOUS)
-	e4:SetCode(EVENT_LEAVE_FIELD)
-	e4:SetOperation(s.markop)
+	e4:SetDescription(aux.Stringid(id,1))
+	e4:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND+CATEGORY_TOGRAVE)
+	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e4:SetProperty(EFFECT_FLAG_DELAY)
+	e4:SetCode(EVENT_TO_GRAVE)
+	e4:SetCountLimit(1,id)
+	e4:SetCondition(s.thcon)
+	e4:SetTarget(s.regtg)
+	e4:SetOperation(s.regop)
 	c:RegisterEffect(e4)
-	--During the End Phase, if it was sent to the GY that way: add 1
-	--"Dragonflymech" monster from your Deck or GY, then optionally mill 1
-	local e5=Effect.CreateEffect(c)
-	e5:SetDescription(aux.Stringid(id,1))
-	e5:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND+CATEGORY_TOGRAVE)
-	e5:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
-	e5:SetCode(EVENT_PHASE+PHASE_END)
-	e5:SetRange(LOCATION_GRAVE)
-	e5:SetCountLimit(1,id)
-	e5:SetCondition(s.thcon)
-	e5:SetTarget(s.thtg)
-	e5:SetOperation(s.thop)
-	c:RegisterEffect(e5)
 end
 s.listed_series={SET_DRAGONFLYMECH}
 
@@ -49,16 +44,31 @@ function s.insectcon(e)
 	local ec=e:GetHandler():GetEquipTarget()
 	return ec~=nil and ec:IsRace(RACE_INSECT)
 end
---The equip target leaving the field is what sends this card to the GY, so the
---marker is registered on the way out and read back in the End Phase.
-function s.markop(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:GetEquipTarget()~=nil then
-		c:RegisterFlagEffect(id,RESET_PHASE|PHASE_END,0,1)
-	end
-end
+--This used to hang a flag effect off EVENT_LEAVE_FIELD and read it back in the
+--End Phase, and it never fired. Two reasons: by the time the equip target has
+--left, GetEquipTarget() is already nil, so the flag was never registered; and a
+--flag set on a card on its way out does not survive into the GY, where it is a
+--new card. REASON_LOST_TARGET is the engine's own reason for an Equip Spell
+--going to the GY because it lost its target, which is exactly the condition.
 function s.thcon(e,tp,eg,ep,ev,re,r,rp)
-	return e:GetHandler():GetFlagEffect(id)>0
+	return e:GetHandler():IsReason(REASON_LOST_TARGET)
+end
+function s.regtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	Duel.SetPossibleOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK|LOCATION_GRAVE)
+end
+--Registers the End Phase payout, the same delayed pattern the rest of the set
+--uses, rather than trying to keep state on a card that has changed location.
+function s.regop(e,tp,eg,ep,ev,re,r,rp)
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetDescription(aux.Stringid(id,1))
+	e1:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND+CATEGORY_TOGRAVE)
+	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	e1:SetCode(EVENT_PHASE+PHASE_END)
+	e1:SetCountLimit(1)
+	e1:SetOperation(s.thop)
+	e1:SetReset(RESET_PHASE|PHASE_END)
+	Duel.RegisterEffect(e1,tp)
 end
 function s.thfilter(c)
 	return c:IsSetCard(SET_DRAGONFLYMECH) and c:IsMonster() and c:IsAbleToHand()
@@ -66,13 +76,12 @@ end
 function s.tgfilter(c)
 	return c:IsLevel(1) and c:IsMonster() and c:IsAbleToGrave()
 end
-function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK|LOCATION_GRAVE,0,1,nil) end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK|LOCATION_GRAVE)
-end
 function s.thop(e,tp,eg,ep,ev,re,r,rp)
+	if not Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK|LOCATION_GRAVE,0,1,nil) then return end
+	Duel.Hint(HINT_CARD,0,id)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-	local g=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK|LOCATION_GRAVE,0,1,1,nil)
+	--"You can add": minimum of 0 so declining is allowed.
+	local g=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK|LOCATION_GRAVE,0,0,1,nil)
 	if #g==0 then return end
 	Duel.SendtoHand(g,nil,REASON_EFFECT)
 	Duel.ConfirmCards(1-tp,g)

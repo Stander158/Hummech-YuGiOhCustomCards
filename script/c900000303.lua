@@ -3,25 +3,17 @@
 Duel.LoadScript("aerol8_common.lua")
 local s,id=GetID()
 function s.initial_effect(c)
-	--Activate
+	--Activate, and the search is part of that activation rather than a second
+	--chain link of its own -- one activation, one resolution.
 	local e1=Effect.CreateEffect(c)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
 	e1:SetCode(EVENT_FREE_CHAIN)
+	e1:SetCountLimit(1,id)
+	e1:SetTarget(s.thtg)
+	e1:SetOperation(s.thop)
 	c:RegisterEffect(e1)
-	--If this card is activated: add 1 "Butterflymech" monster from your Deck
-	--or GY to your hand
-	local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(id,0))
-	e2:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND)
-	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
-	e2:SetProperty(EFFECT_FLAG_DELAY)
-	e2:SetCode(EVENT_CHAIN_SOLVED)
-	e2:SetRange(LOCATION_SZONE)
-	e2:SetCountLimit(1,id)
-	e2:SetCondition(s.thcon)
-	e2:SetTarget(s.thtg)
-	e2:SetOperation(s.thop)
-	c:RegisterEffect(e2)
 	--Your "Butterflymech" monster effects cannot be responded to.
 	--Duel.SetChainLimit only constrains the chain currently being built, so it
 	--has to be applied as each qualifying activation happens.
@@ -51,22 +43,24 @@ end
 s.listed_series={SET_BUTTERFLYMECH}
 s.listed_names={id}
 
-function s.thcon(e,tp,eg,ep,ev,re,r,rp)
-	return re==e:GetHandler():GetActivateEffect()
-end
 function s.thfilter(c)
 	return c:IsSetCard(SET_BUTTERFLYMECH) and c:IsMonster() and c:IsAbleToHand()
 end
+--The search is the "You can" part, so it is not a requirement of activation:
+--with nothing to fetch this card still goes down for its other two effects.
+--Structure follows The Hidden City (5697558), which is shaped the same way --
+--a continuous card whose activation optionally searches.
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK|LOCATION_GRAVE,0,1,nil) end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK|LOCATION_GRAVE)
+	if chk==0 then return true end
+	Duel.SetPossibleOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK|LOCATION_GRAVE)
 end
 function s.thop(e,tp,eg,ep,ev,re,r,rp)
-	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-	local g=Duel.SelectMatchingCard(tp,s.thfilter,tp,LOCATION_DECK|LOCATION_GRAVE,0,1,1,nil)
-	if #g>0 then
-		Duel.SendtoHand(g,nil,REASON_EFFECT)
-		Duel.ConfirmCards(1-tp,g)
+	local g=Duel.GetMatchingGroup(s.thfilter,tp,LOCATION_DECK|LOCATION_GRAVE,0,nil)
+	if #g>0 and Duel.SelectYesNo(tp,aux.Stringid(id,0)) then
+		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+		local sg=g:Select(tp,1,1,nil)
+		Duel.SendtoHand(sg,nil,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,sg)
 	end
 end
 
