@@ -18,79 +18,109 @@ Spells they revolve around.
 
 Add this repository to EDOPro and it will pull updates on every launch.
 
-Open `config/user_configs.json` in your EDOPro folder and put this inside the
-`"repos"` array:
-
-```json
-{
-  "url": "https://github.com/Stander158/Aerol8-CustomCards",
-  "repo_name": "Aerol-8 / mech custom set",
-  "repo_path": "./repositories/aerol8",
-  "data_path": "",
-  "script_path": "script",
-  "pics_path": "pics",
-  "should_update": true,
-  "should_read": true
-}
-```
-
-So the file looks like:
+Edit `config/user_configs.json` in your EDOPro folder — use that file rather
+than `configs.json`, so an official EDOPro update can't overwrite your entry.
+If the whole file is new, this is all it needs:
 
 ```json
 {
 	"repos": [
-		{ "url": "https://github.com/Stander158/Aerol8-CustomCards", "repo_name": "Aerol-8 / mech custom set", "repo_path": "./repositories/aerol8", "data_path": "", "script_path": "script", "pics_path": "pics", "should_update": true, "should_read": true }
-	],
-	"urls": [],
-	"servers": []
+		{
+			"url": "https://github.com/Stander158/Aerol8-CustomCards",
+			"repo_name": "Aerol-8 custom cards",
+			"repo_path": "./repositories/aerol8",
+			"should_update": true,
+			"should_read": true
+		}
+	]
 }
 ```
 
-Restart EDOPro. It clones into `repositories/aerol8` and stays current from then
-on — no re-downloading when cards change.
+**If you already have entries in `"repos"`** (from another custom set), add just
+the object above alongside them — and remember the comma between entries:
+
+```json
+{
+	"repos": [
+		{ ... someone else's set ... },
+		{
+			"url": "https://github.com/Stander158/Aerol8-CustomCards",
+			"repo_name": "Aerol-8 custom cards",
+			"repo_path": "./repositories/aerol8",
+			"should_update": true,
+			"should_read": true
+		}
+	]
+}
+```
+
+The layout here matches what EDOPro expects by default — database at the root,
+scripts in `script/`, images in `pics/` — so no path settings are needed.
+
+Restart EDOPro, then check the **Repositories** button at the top left: the
+progress bar for *Aerol-8 custom cards* should reach 100%. If it stalls, the
+problem is almost always the JSON — a missing comma, or the file in the wrong
+folder.
+
+From then on it updates itself on every launch. Nothing to re-download when
+cards change.
 
 ## Install — manual
 
-Download the repository as a ZIP and copy into your EDOPro folder:
+Green **Code** button → **Download ZIP**, then extract it straight into
 
-| From the ZIP | To |
-| --- | --- |
-| `custom-cards.cdb` | `expansions/custom-cards.cdb` |
-| `strings.conf` | `expansions/strings.conf` |
-| `script/*.lua` | `expansions/script/` |
-| `pics/*.png` | `expansions/pics/` |
-| `pics/field/*.png` | `expansions/pics/field/` |
-| `deck/Aerol-8 mech.ydk` | `deck/` |
+```
+.../ProjectIgnis/expansions/
+```
 
-> If you already have `expansions/strings.conf` from another custom set, **do
-> not overwrite it** — append the `!setname` lines from this one instead. That
-> file is shared between sets.
+The folder layout here is already the `expansions/` layout, so the database,
+`script/` and `pics/` all land where they belong.
+
+Two things to watch:
+
+- **`deck/Aerol-8 mech.ydk` is the exception** — move it to `ProjectIgnis/deck/`,
+  not `expansions/deck/`, or the deck list won't show it.
+- **If `expansions/strings.conf` already exists** from another custom set, do
+  **not** overwrite it. Open both and append the `!setname` lines from this one.
+  That file is shared between sets.
+
+You'll need to repeat this each time the cards change, which is why Method 1 is
+worth the one-time setup.
 
 ## Turn on custom cards — required either way
 
-These are registered in the **Custom** card scope (they show a `CSTM` label and
-are deliberately not treated as real OCG/TCG cards), so they stay hidden until
-you opt in:
+These are registered in the **Custom** card scope — they show a `CSTM` label and
+are deliberately not treated as real OCG/TCG cards — so they stay hidden until
+you opt in, in two separate places:
 
-1. In the **Deck Editor**, tick **"Alternate formats"**.
-2. In duel settings, set **Allowed cards** to a setting that permits custom cards.
+1. **Deck Editor:** tick the **Alternate formats** checkbox, or searches return
+   nothing at all. This is the usual reason someone thinks the install failed.
+2. **Duel setup:** set **Allowed cards** to **Anything goes**. Custom cards
+   aren't legal in any other format, so nothing else will let them through.
 
-Missing step 1 is the usual reason someone thinks the install failed — searches
-simply return nothing.
+## Playing
 
-## Playing online
+**Against the AI** — main menu → **LAN + AI** → **Host**, set *Allowed cards* to
+*Anything goes*, and add a bot. The AI can't pilot this deck (there's no
+executor for it), but it's a fine punching bag for testing your own cards.
 
-**Custom cards do not work on the public Project Ignis servers.** Those validate
-decks against their own database and will report
+**Against a person** — the same *Anything goes* setting applies, plus:
 
-```
-"…" cannot be identified by the host.
-```
+> **Custom cards do not work on the public Project Ignis servers.** Those
+> validate decks against their own database and will report
+> `"…" cannot be identified by the host.`
 
-Use a direct connection instead: one player hosts (default port **7911**), the
-other joins on their address. Same network works as-is; across the internet,
-either forward TCP 7911 or put both machines on a private network with
-Tailscale, ZeroTier or Radmin VPN.
+So use a direct connection: one player hosts (default port **7911**), the other
+joins on their address. Options:
+
+- Same house — just use the host's local `192.168.x.x`.
+- Port-forward TCP **7911** to the host and use their public IP.
+- Or put both machines on a private network with **Tailscale**, **ZeroTier** or
+  **Radmin VPN**, then join on the address it hands out. No port forwarding.
+
+Both players need the card database to see what the cards are, and the **host**
+needs the scripts for the effects to run — simplest is for both to install the
+whole set.
 
 ## Cards
 
