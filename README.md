@@ -26,9 +26,9 @@ If the whole file is new, this is all it needs:
 {
 	"repos": [
 		{
-			"url": "https://github.com/Stander158/Aerol8-CustomCards",
-			"repo_name": "Aerol-8 custom cards",
-			"repo_path": "./repositories/aerol8",
+			"url": "https://github.com/Stander158/Hummech-YuGiOhCustomCards",
+			"repo_name": "Hummech custom cards",
+			"repo_path": "./repositories/hummech",
 			"should_update": true,
 			"should_read": true
 		}
@@ -44,9 +44,9 @@ the object above alongside them — and remember the comma between entries:
 	"repos": [
 		{ ... someone else's set ... },
 		{
-			"url": "https://github.com/Stander158/Aerol8-CustomCards",
-			"repo_name": "Aerol-8 custom cards",
-			"repo_path": "./repositories/aerol8",
+			"url": "https://github.com/Stander158/Hummech-YuGiOhCustomCards",
+			"repo_name": "Hummech custom cards",
+			"repo_path": "./repositories/hummech",
 			"should_update": true,
 			"should_read": true
 		}
@@ -58,7 +58,7 @@ The layout here matches what EDOPro expects by default — database at the root,
 scripts in `script/`, images in `pics/` — so no path settings are needed.
 
 Restart EDOPro, then check the **Repositories** button at the top left: the
-progress bar for *Aerol-8 custom cards* should reach 100%. If it stalls, the
+progress bar for *Hummech custom cards* should reach 100%. If it stalls, the
 problem is almost always the JSON — a missing comma, or the file in the wrong
 folder.
 
