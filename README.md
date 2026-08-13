@@ -1,12 +1,14 @@
 # Aerol-8 / "mech" — custom cards for EDOPro
 
-22 custom Yu-Gi-Oh! cards for **Project Ignis: EDOPro**: a Level 1 / Rank 1 /
-Link 1 WIND Insect–Winged Beast–Machine engine that locks itself into tier-1
-monsters in exchange for a very dense opponent-turn game.
+A Level 1 / Rank 1 / Link 1 WIND Insect/Winged-Beast/Machine engine that locks itself into Level 1 / Rank 1 /
+Link 1 monsters in exchange for a very dense opponent-turn game.
 
-Five families — **Hummech**, **Dragonflymech**, **Butterflymech**, **Mothmech**
+Five archetypes — **Hummech**, **Dragonflymech**, **Butterflymech**, **Mothmech**
 and **Ultimech** — under the shared `"mech"` archetype, plus the `"Aerol"` Field
 Spells they revolve around.
+
+The **Ultimech** archetype and the card **Aerol-8 Accel** is slightly above the current strength of 2026. For balance reasons, you may select 
+to not include these in your deck for a more balanced experience. 
 
 > **Both players need these cards installed.** Custom cards are not transmitted
 > during a duel; each client simulates locally, so a missing card on either side
